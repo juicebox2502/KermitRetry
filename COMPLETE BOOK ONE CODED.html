@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vintage Book</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes flipNext {
+            0% { 
+                transform: rotateY(0deg) scale(1);
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            }
+            50% {
+                transform: rotateY(-90deg) scale(1.02);
+                box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            }
+            100% { 
+                transform: rotateY(-180deg) scale(1);
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            }
+        }
+        @keyframes flipPrev {
+            0% { 
+                transform: rotateY(0deg) scale(1);
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            }
+            50% {
+                transform: rotateY(90deg) scale(1.02);
+                box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            }
+            100% { 
+                transform: rotateY(180deg) scale(1);
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            }
+        }
+        .flipping-next {
+            animation: flipNext 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transform-origin: left center;
+        }
+        .flipping-prev {
+            animation: flipPrev 1.2s cubic-bezier(0.45, 0.05, 0.55, 0.95);
+            transform-origin: right center;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const VintageBook = () => {
+            const [currentPage, setCurrentPage] = useState(0);
+            const [isFlipping, setIsFlipping] = useState(false);
+            const [flipDirection, setFlipDirection] = useState('');
+            const audioRef = useRef(null);
+
+            // Story pages with front cover, content pages, and back cover
+            const pages = [
+                { 
+                    title: "", 
+                    content: "",
+                    illustration: "frontCover",
+                    isCover: true
+                },
+                {
+                    title: "",
+                    content: "",
+                    illustration: "blank"
+                },
+                { 
+                    title: "A Little Book", 
+                    content: "Okay, well since I couldn't do a Brayden, make some paper flowers and a two line card message. Then somehow get a uber to your house drop it off secretly without your parents even knowing. But you could maybe have a bush? secret Keerit mailbox to receive gifts and what not? Never know.",
+                    illustration: "trainStation"
+                },
+                { 
+                    title: "Something Creative", 
+                    content: "I ended up deciding to make something digital and more memorable in a way, which of course you could tell by already reading this on your phone or something. So I spent the last two-three nights designing, writing code, and writing a message.",
+                    illustration: "gettingReady"
+                },
+                { 
+                    title: "The Help", 
+                    content: "Also have to of course reference the help Sonali did for me to make this all really happen, Brayden didn't do much and thinks he doesn't owe me $20 that he lost in poker to me,",
+                    illustration: "limo"
+                },
+                { 
+                    title: "This Guy thinks hes off the hook", 
+                    content: "because he 'helped' me with 'so much' apparently. But really though with the phone ban what else are we suppose to do, play poker without actual money, no fun in that.",
+                    illustration: "reception"
+                },
+                { 
+                    title: "Need some context", 
+                    content: "But just a little bit of context that you might already know, probably do. Tickets to a certain event are closing Friday the 6th. I did want to give you some time but yeah, pretty soon, I didn't realise how quick it actually goes. Anyways,",
+                    illustration: "dancing"
+                },
+                { 
+                    title: "Guessing you could tell", 
+                    content: "Would you like to go to the formal with me?",
+                    illustration: "leaving"
+                },
+                {
+                    title: "Helping of course",
+                    content: "ALSO, I completely understand that your parents are making it difficult but I will help in anyway to make it possible.",
+                    illustration: "blank"
+                },
+                {
+                    title: "",
+                    content: "",
+                    illustration: "backCover",
+                    isCover: true
+                }
+            ];
+
+            const totalPages = pages.length;
+
+            // Play page turn sound
+            const playPageSound = () => {
+                if (audioRef.current) {
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.play().catch(e => console.log('Audio play failed:', e));
+                }
+            };
+
+            const nextPage = () => {
+                if (currentPage < totalPages - 2 && !isFlipping) {
+                    setFlipDirection('next');
+                    setIsFlipping(true);
+                    playPageSound();
+                    setTimeout(() => {
+                        setCurrentPage(currentPage + 2);
+                        setIsFlipping(false);
+                        setFlipDirection('');
+                    }, 1200);
+                }
+            };
+
+            const prevPage = () => {
+                if (currentPage > 0 && !isFlipping) {
+                    setFlipDirection('prev');
+                    setIsFlipping(true);
+                    playPageSound();
+                    setTimeout(() => {
+                        setCurrentPage(currentPage - 2);
+                        setIsFlipping(false);
+                        setFlipDirection('');
+                    }, 1200);
+                }
+            };
+
+            // Placeholder images for each scene
+            const getIllustration = (type) => {
+                const placeholders = {
+                    trainStation: "Train Station Scene",
+                    gettingReady: "Getting Ready Scene",
+                    limo: "Black Limo Scene",
+                    reception: "Formal Reception Scene",
+                    dancing: "Dancing Together Scene",
+                    leaving: "Leaving in Limo Scene"
+                };
+
+                // Front Cover
+                if (type === "frontCover") {
+                    return (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-12">
+                            <div className="text-center space-y-8">
+                                <div className="border-4 border-amber-900 p-8 rounded-lg bg-gradient-to-br from-amber-800/20 to-transparent">
+                                    <h1 className="text-6xl font-serif text-amber-900 mb-4 tracking-wider" 
+                                        style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+                                        Our Story
+                                    </h1>
+                                    <div className="h-1 w-32 bg-amber-900 mx-auto my-6"></div>
+                                    <p className="text-2xl font-serif text-stone-700 italic">
+                                        A Journey Together
+                                    </p>
+                                </div>
+                                <div className="mt-16">
+                                    <p className="text-lg font-serif text-stone-600 italic">
+                                        Turn the page to begin...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // Back Cover
+                if (type === "backCover") {
+                    return (
+                        <div className="w-full h-full flex flex-col items-center justify-center p-12">
+                            <div className="text-center space-y-8">
+                                <div className="border-4 border-amber-900 p-8 rounded-lg bg-gradient-to-br from-amber-800/20 to-transparent">
+                                    <h2 className="text-4xl font-serif text-amber-900 mb-6 tracking-wide" 
+                                        style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
+                                        The End
+                                    </h2>
+                                    <div className="h-1 w-24 bg-amber-900 mx-auto my-6"></div>
+                                    <p className="text-xl font-serif text-stone-700 italic leading-relaxed">
+                                        But every ending<br/>
+                                        is just a new beginning...
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                // Blank page
+                if (type === "blank") {
+                    return <div className="w-full h-full"></div>;
+                }
+
+                // Regular content pages
+                return (
+                    <div className="w-full h-48 bg-stone-300 rounded-lg flex items-center justify-center border-2 border-stone-400">
+                        <span className="text-stone-600 font-serif text-lg italic">
+                            {placeholders[type] || "Image Placeholder"}
+                        </span>
+                    </div>
+                );
+            };
+
+            // Generate page turn sound using Web Audio API
+            useEffect(() => {
+                const audio = new Audio();
+                audio.volume = 0.3;
+                audioRef.current = audio;
+                const silentAudio = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+                audio.src = silentAudio;
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-gray-900 via-neutral-900 to-black flex items-center justify-center p-8">
+                    <div className="relative" style={{ perspective: '2000px' }}>
+                        {/* Book shadow */}
+                        <div className="absolute inset-0 bg-black opacity-60 blur-3xl transform translate-y-8"></div>
+                        
+                        {/* Book container */}
+                        <div className="relative bg-gradient-to-r from-neutral-800 to-stone-800 rounded-lg shadow-2xl" 
+                             style={{ width: '800px', height: '600px', transformStyle: 'preserve-3d' }}>
+                            
+                            {/* Book spine decoration */}
+                            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-neutral-900 to-stone-900 border-r-2 border-black shadow-inner">
+                                <div className="h-full flex flex-col justify-around px-1">
+                                    {[...Array(8)].map((_, i) => (
+                                        <div key={i} className="h-1 bg-amber-900 opacity-60 rounded"></div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Left page */}
+                            <div className={`absolute left-12 top-0 bottom-0 ${
+                                pages[currentPage].isCover && currentPage === 0 ? 'right-0' : 'right-1/2 border-r border-stone-500'
+                            } p-12 ${
+                                flipDirection === 'prev' ? 'flipping-prev' : ''
+                            }`}
+                                 style={{ 
+                                     background: pages[currentPage].isCover && currentPage === 0 
+                                       ? 'linear-gradient(135deg, #654321 0%, #8B4513 50%, #A0522D 100%)'
+                                       : `
+                                       radial-gradient(circle at 20% 30%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+                                       radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.06) 0%, transparent 40%),
+                                       radial-gradient(circle at 40% 80%, rgba(120, 81, 45, 0.05) 0%, transparent 30%),
+                                       linear-gradient(to bottom right, #e7d4c0 0%, #d4c4b0 50%, #c9b8a3 100%)
+                                     `,
+                                     backgroundImage: pages[currentPage].isCover && currentPage === 0 
+                                       ? 'none'
+                                       : `
+                                       url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.12'/%3E%3C/svg%3E"),
+                                       radial-gradient(circle at 20% 30%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+                                       radial-gradient(circle at 80% 70%, rgba(101, 67, 33, 0.06) 0%, transparent 40%),
+                                       radial-gradient(circle at 40% 80%, rgba(120, 81, 45, 0.05) 0%, transparent 30%),
+                                       linear-gradient(to bottom right, #e7d4c0 0%, #d4c4b0 50%, #c9b8a3 100%)
+                                     `,
+                                     boxShadow: pages[currentPage].isCover && currentPage === 0
+                                       ? 'inset 0 0 100px rgba(0,0,0,0.5), 0 10px 50px rgba(0,0,0,0.8)'
+                                       : `
+                                       inset 0 0 60px rgba(101, 67, 33, 0.2),
+                                       inset -10px 0 30px rgba(0, 0, 0, 0.1)
+                                     `,
+                                     transformStyle: 'preserve-3d',
+                                     backfaceVisibility: 'hidden',
+                                     borderImage: pages[currentPage].isCover && currentPage === 0 
+                                       ? 'none'
+                                       : 'linear-gradient(to bottom, rgba(101, 67, 33, 0.3), rgba(139, 69, 19, 0.2)) 1',
+                                     border: pages[currentPage].isCover && currentPage === 0 
+                                       ? '3px solid #3D2817'
+                                       : ''
+                                 }}>
+                                {currentPage < totalPages && (
+                                    pages[currentPage].isCover && currentPage === 0 ? (
+                                        // Front cover - full width
+                                        <div className="h-full w-full flex items-center justify-center">
+                                            <div className="text-center space-y-8">
+                                                <div className="border-4 border-amber-300 p-12 rounded-lg bg-black/30 backdrop-blur-sm">
+                                                    <h1 className="text-7xl font-serif text-amber-100 mb-6 tracking-widest" 
+                                                        style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.3)' }}>
+                                                        Book without a title
+                                                    </h1>
+                                                    <div className="h-1 w-48 bg-amber-300 mx-auto my-8"></div>
+                                                    <p className="text-3xl font-serif text-amber-200 italic" 
+                                                       style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>
+                                                        By Finn
+                                                    </p>
+                                                </div>
+                                                <div className="mt-20">
+                                                    <p className="text-xl font-serif text-amber-200 italic"
+                                                       style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.8)' }}>
+                                                        Use the buttons at the bottom
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : pages[currentPage].isCover ? (
+                                        // Other covers - full page
+                                        <div className="h-full w-full">
+                                            {getIllustration(pages[currentPage].illustration)}
+                                        </div>
+                                    ) : (
+                                        // Regular page layout
+                                        <div className="h-full flex flex-col relative">
+                                            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-stone-400 to-transparent opacity-30 pointer-events-none"></div>
+                                            <div className="absolute bottom-0 left-0 w-12 h-12 bg-gradient-to-tr from-stone-400 to-transparent opacity-20 pointer-events-none"></div>
+                                            
+                                            {pages[currentPage].title && (
+                                                <h2 className="text-3xl font-serif text-stone-800 mb-6 border-b-2 border-stone-500 pb-2 tracking-wide" 
+                                                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
+                                                    {pages[currentPage].title}
+                                                </h2>
+                                            )}
+                                            {pages[currentPage].content && (
+                                                <p className="text-lg font-serif text-stone-700 leading-relaxed whitespace-pre-wrap mb-4" 
+                                                   style={{ textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.05)' }}>
+                                                    {pages[currentPage].content}
+                                                </p>
+                                            )}
+                                            
+                                            {/* Illustration at bottom */}
+                                            <div className="mt-auto mb-8">
+                                                {getIllustration(pages[currentPage].illustration)}
+                                            </div>
+                                            
+                                            {pages[currentPage].title && (
+                                                <div className="text-center text-stone-600 font-serif text-sm italic">
+                                                    {currentPage + 1}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )
+                                )}
+                            </div>
+
+                            {/* Right page */}
+                            {!(pages[currentPage].isCover && currentPage === 0) && (
+                                <div className={`absolute left-1/2 top-0 bottom-0 ${
+                                    currentPage + 1 < totalPages && pages[currentPage + 1].isCover && currentPage + 1 === totalPages - 1 ? 'left-12 right-0' : 'right-0'
+                                } p-12 ${
+                                    flipDirection === 'next' ? 'flipping-next' : ''
+                                }`}
+                                     style={{ 
+                                         background: currentPage + 1 < totalPages && pages[currentPage + 1].isCover && currentPage + 1 === totalPages - 1
+                                           ? 'linear-gradient(135deg, #654321 0%, #8B4513 50%, #A0522D 100%)'
+                                           : `
+                                           radial-gradient(circle at 80% 30%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+                                           radial-gradient(circle at 20% 70%, rgba(101, 67, 33, 0.06) 0%, transparent 40%),
+                                           radial-gradient(circle at 60% 80%, rgba(120, 81, 45, 0.05) 0%, transparent 30%),
+                                           linear-gradient(to bottom left, #e7d4c0 0%, #d4c4b0 50%, #c9b8a3 100%)
+                                         `,
+                                         backgroundImage: currentPage + 1 < totalPages && pages[currentPage + 1].isCover && currentPage + 1 === totalPages - 1
+                                           ? 'none'
+                                           : `
+                                           url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.12'/%3E%3C/svg%3E"),
+                                           radial-gradient(circle at 80% 30%, rgba(139, 69, 19, 0.08) 0%, transparent 50%),
+                                           radial-gradient(circle at 20% 70%, rgba(101, 67, 33, 0.06) 0%, transparent 40%),
+                                           radial-gradient(circle at 60% 80%, rgba(120, 81, 45, 0.05) 0%, transparent 30%),
+                                           linear-gradient(to bottom left, #e7d4c0 0%, #d4c4b0 50%, #c9b8a3 100%)
+                                         `,
+                                         boxShadow: currentPage + 1 < totalPages && pages[currentPage + 1].isCover && currentPage + 1 === totalPages - 1
+                                           ? 'inset 0 0 100px rgba(0,0,0,0.5), 0 10px 50px rgba(0,0,0,0.8)'
+                                           : `
+                                           inset 0 0 60px rgba(101, 67, 33, 0.2),
+                                           inset 10px 0 30px rgba(0, 0, 0, 0.1)
+                                         `,
+                                         transformStyle: 'preserve-3d',
+                                         backfaceVisibility: 'hidden',
+                                         border: currentPage + 1 < totalPages && pages[currentPage + 1].isCover && currentPage + 1 === totalPages - 1
+                                           ? '3px solid #3D2817'
+                                           : ''
+                                     }}>
+                                    {currentPage + 1 < totalPages && (
+                                        pages[currentPage + 1].isCover && currentPage + 1 === totalPages - 1 ? (
+                                            // Back cover - full width
+                                            <div className="h-full w-full flex items-center justify-center">
+                                                <div className="text-center space-y-8">
+                                                    <div className="border-4 border-amber-300 p-12 rounded-lg bg-black/30 backdrop-blur-sm">
+                                                        <h2 className="text-6xl font-serif text-amber-100 mb-8 tracking-widest" 
+                                                            style={{ textShadow: '3px 3px 6px rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.3)' }}>
+                                                            The End
+                                                        </h2>
+                                                        <div className="h-1 w-32 bg-amber-300 mx-auto my-8"></div>
+                                                        <p className="text-3xl font-serif text-amber-200 italic leading-relaxed"
+                                                           style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.7)' }}>
+                                                            Hope you<br/>
+                                                            Liked it
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : pages[currentPage + 1].isCover ? (
+                                            // Other covers
+                                            <div className="h-full w-full">
+                                                {getIllustration(pages[currentPage + 1].illustration)}
+                                            </div>
+                                        ) : (
+                                            // Regular page layout
+                                            <div className="h-full flex flex-col relative">
+                                                <div className="absolute top-0 left-0 w-16 h-16 bg-gradient-to-br from-stone-400 to-transparent opacity-30 pointer-events-none"></div>
+                                                <div className="absolute bottom-0 right-0 w-12 h-12 bg-gradient-to-tl from-stone-400 to-transparent opacity-20 pointer-events-none"></div>
+                                                
+                                                {pages[currentPage + 1].title && (
+                                                    <h2 className="text-3xl font-serif text-stone-800 mb-6 border-b-2 border-stone-500 pb-2 tracking-wide" 
+                                                        style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
+                                                        {pages[currentPage + 1].title}
+                                                    </h2>
+                                                )}
+                                                {pages[currentPage + 1].content && (
+                                                    <p className="text-lg font-serif text-stone-700 leading-relaxed whitespace-pre-wrap mb-4" 
+                                                       style={{ textShadow: '0.5px 0.5px 1px rgba(0,0,0,0.05)' }}>
+                                                        {pages[currentPage + 1].content}
+                                                    </p>
+                                                )}
+                                                
+                                                {/* Illustration at bottom */}
+                                                <div className="mt-auto mb-8">
+                                                    {getIllustration(pages[currentPage + 1].illustration)}
+                                                </div>
+                                                
+                                                {pages[currentPage + 1].title && (
+                                                    <div className="text-center text-stone-600 font-serif text-sm italic">
+                                                        {currentPage + 2}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Book cover glass effect */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-white to-transparent opacity-5 pointer-events-none rounded-lg"></div>
+                        </div>
+
+                        {/* Navigation buttons */}
+                        <div className="absolute -bottom-20 left-0 right-0 flex justify-between items-center px-8">
+                            <button
+                                onClick={prevPage}
+                                disabled={currentPage === 0 || isFlipping}
+                                className={`px-8 py-3 rounded-lg font-serif text-lg shadow-lg transition-all ${
+                                    currentPage === 0 || isFlipping
+                                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                        : 'bg-stone-700 text-stone-100 hover:bg-stone-600 hover:shadow-xl active:scale-95'
+                                }`}
+                            >
+                                ← Previous
+                            </button>
+                            
+                            <div className="text-stone-300 font-serif text-lg">
+                                Pages {currentPage + 1}-{Math.min(currentPage + 2, totalPages)} of {totalPages}
+                            </div>
+                            
+                            <button
+                                onClick={nextPage}
+                                disabled={currentPage >= totalPages - 2 || isFlipping}
+                                className={`px-8 py-3 rounded-lg font-serif text-lg shadow-lg transition-all ${
+                                    currentPage >= totalPages - 2 || isFlipping
+                                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                        : 'bg-stone-700 text-stone-100 hover:bg-stone-600 hover:shadow-xl active:scale-95'
+                                }`}
+                            >
+                                Next →
+                            </button>
+                        </div>
+
+                        {/* Keyboard hint */}
+                        <div className="absolute -bottom-32 left-0 right-0 text-center text-stone-400 text-sm font-serif opacity-70">
+                            Tip: Click the buttons to turn pages
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<VintageBook />, document.getElementById('root'));
+    </script>
+</body>
+</html>
